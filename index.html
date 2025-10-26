@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paris Fireworks</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: linear-gradient(to bottom, #0a0a2e 0%, #16213e 50%, #1a1a3e 100%);
+            font-family: 'Georgia', serif;
+        }
+
+        .intro-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a3e 0%, #0a0a2e 50%, #16213e 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            animation: fadeIn 1s ease-in;
+        }
+
+        .intro-screen.fade-out {
+            animation: fadeOut 1s ease-out forwards;
+        }
+
+        .intro-content {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .intro-title {
+            font-size: clamp(36px, 10vw, 96px);
+            font-weight: bold;
+            color: white;
+            font-family: 'Brush Script MT', cursive, 'Georgia', serif;
+            margin-bottom: 30px;
+            animation: slideDown 1s ease-out, glow 2s ease-in-out infinite;
+            text-shadow: 
+                0 0 30px rgba(255, 107, 107, 1),
+                0 0 60px rgba(255, 107, 107, 0.8),
+                0 0 90px rgba(255, 20, 147, 0.6);
+        }
+
+        .intro-hearts {
+            font-size: clamp(48px, 12vw, 120px);
+            margin: 20px 0;
+            animation: heartPulse 1.5s ease-in-out infinite;
+        }
+
+        .intro-subtitle {
+            font-size: clamp(24px, 5vw, 48px);
+            color: #ffd700;
+            font-family: 'Georgia', serif;
+            margin: 30px 0;
+            animation: slideUp 1s ease-out 0.5s backwards;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        }
+
+        .start-button {
+            padding: clamp(15px, 3vw, 20px) clamp(40px, 6vw, 60px);
+            font-size: clamp(18px, 3vw, 28px);
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.6);
+            animation: slideUp 1s ease-out 1s backwards, bounce 2s ease-in-out 2s infinite;
+            font-family: 'Georgia', serif;
+            letter-spacing: 2px;
+        }
+
+        .start-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 12px 40px rgba(255, 107, 107, 0.8);
+        }
+
+        .music-toggle {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            border-radius: 30px;
+            color: white;
+            font-size: clamp(14px, 2vw, 18px);
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .music-toggle:hover {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: rgba(255, 215, 0, 0.8);
+            transform: scale(1.05);
+        }
+
+        .music-toggle.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; visibility: hidden; }
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes heartPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.3);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        canvas {
+            display: block;
+            will-change: transform;
+        }
+
+        .scene {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .eiffel-tower {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: clamp(100px, 15vw, 180px);
+            height: clamp(250px, 35vh, 450px);
+            z-index: 10;
+        }
+
+        .tower-base {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            height: 18%;
+            background: linear-gradient(to top, #2a2a2a 0%, #3a3a3a 100%);
+            clip-path: polygon(20% 100%, 80% 100%, 70% 0%, 30% 0%);
+        }
+
+        .tower-middle {
+            position: absolute;
+            bottom: 18%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 67%;
+            height: 40%;
+            background: linear-gradient(to top, #3a3a3a 0%, #4a4a4a 100%);
+            clip-path: polygon(15% 100%, 85% 100%, 65% 0%, 35% 0%);
+        }
+
+        .tower-top {
+            position: absolute;
+            bottom: 58%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 33%;
+            height: 27%;
+            background: linear-gradient(to top, #4a4a4a 0%, #5a5a5a 100%);
+            clip-path: polygon(20% 100%, 80% 100%, 60% 0%, 40% 0%);
+        }
+
+        .tower-spire {
+            position: absolute;
+            bottom: 85%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: clamp(2px, 0.5vw, 4px);
+            height: 15%;
+            background: linear-gradient(to top, #5a5a5a 0%, #ff6b6b 100%);
+        }
+
+        .tower-light {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.2) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+            will-change: opacity;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        .building {
+            position: absolute;
+            bottom: 0;
+            background: linear-gradient(to top, #1a1a1a 0%, #2a2a2a 100%);
+        }
+
+        .building1 {
+            left: 5%;
+            width: clamp(40px, 8vw, 80px);
+            height: clamp(80px, 15vh, 150px);
+        }
+
+        .building2 {
+            left: 15%;
+            width: clamp(30px, 6vw, 60px);
+            height: clamp(60px, 12vh, 120px);
+        }
+
+        .building3 {
+            right: 5%;
+            width: clamp(45px, 9vw, 90px);
+            height: clamp(90px, 18vh, 180px);
+        }
+
+        .building4 {
+            right: 16%;
+            width: clamp(35px, 7vw, 70px);
+            height: clamp(70px, 14vh, 140px);
+        }
+
+        .window {
+            position: absolute;
+            width: 8px;
+            height: 10px;
+            background: rgba(255, 215, 0, 0.5);
+            will-change: opacity;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: clamp(8px, 2vw, 15px);
+            background: rgba(0, 0, 0, 0.4);
+            padding: clamp(10px, 2vw, 15px) clamp(15px, 3vw, 25px);
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            z-index: 1000;
+            pointer-events: all;
+            max-width: 90%;
+        }
+
+        button {
+            padding: clamp(8px, 1.5vw, 12px) clamp(12px, 2.5vw, 24px);
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+            color: white;
+            font-weight: bold;
+            font-size: clamp(12px, 2vw, 16px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            white-space: nowrap;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .title {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: clamp(24px, 5vw, 42px);
+            font-weight: bold;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 107, 107, 0.5);
+            opacity: 0.95;
+            z-index: 1000;
+            font-family: 'Georgia', serif;
+            letter-spacing: 2px;
+            padding: 0 20px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .name-display {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+            text-align: center;
+            width: 90%;
+            max-width: 100%;
+        }
+
+        .name-text {
+            font-size: clamp(32px, 8vw, 72px);
+            font-weight: bold;
+            color: white;
+            text-shadow: 
+                0 0 20px rgba(255, 107, 107, 1),
+                0 0 40px rgba(255, 107, 107, 0.8),
+                0 0 60px rgba(255, 107, 107, 0.6),
+                0 0 80px rgba(255, 20, 147, 0.4);
+            font-family: 'Brush Script MT', cursive, 'Georgia', serif;
+            animation: glow 2s ease-in-out infinite;
+            letter-spacing: clamp(2px, 0.5vw, 4px);
+            word-wrap: break-word;
+        }
+
+        .heart-emoji {
+            font-size: clamp(28px, 7vw, 64px);
+            display: inline-block;
+            animation: heartbeat 1.5s ease-in-out infinite;
+            margin: 0 clamp(8px, 2vw, 15px);
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                text-shadow: 
+                    0 0 20px rgba(255, 107, 107, 1),
+                    0 0 40px rgba(255, 107, 107, 0.8),
+                    0 0 60px rgba(255, 107, 107, 0.6),
+                    0 0 80px rgba(255, 20, 147, 0.4);
+            }
+            50% {
+                text-shadow: 
+                    0 0 30px rgba(255, 107, 107, 1),
+                    0 0 60px rgba(255, 107, 107, 1),
+                    0 0 90px rgba(255, 107, 107, 0.8),
+                    0 0 120px rgba(255, 20, 147, 0.6);
+            }
+        }
+
+        @keyframes heartbeat {
+            0%, 100% {
+                transform: scale(1);
+            }
+            25% {
+                transform: scale(1.2);
+            }
+            50% {
+                transform: scale(1);
+            }
+            75% {
+                transform: scale(1.15);
+            }
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            will-change: opacity;
+        }
+    </style>
+</head>
+<body>
+    <div class="intro-screen" id="introScreen">
+        <div class="intro-content">
+            <div class="intro-title">Mikee Alvarez</div>
+            <div class="intro-subtitle">Paris Fireworks Show</div>
+            <button class="start-button" onclick="startShow()">Start the Show</button>
+        </div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+    
+    <div class="stars" id="stars"></div>
+    
+    <div class="scene">
+        <div class="building building1">
+            <div class="window" style="top: 20px; left: 15px;"></div>
+            <div class="window" style="top: 20px; left: 35px;"></div>
+            <div class="window" style="top: 45px; left: 15px;"></div>
+            <div class="window" style="top: 45px; left: 35px;"></div>
+            <div class="window" style="top: 70px; left: 15px;"></div>
+            <div class="window" style="top: 70px; left: 35px;"></div>
+        </div>
+        
+        <div class="building building2">
+            <div class="window" style="top: 15px; left: 12px;"></div>
+            <div class="window" style="top: 15px; left: 28px;"></div>
+            <div class="window" style="top: 40px; left: 12px;"></div>
+            <div class="window" style="top: 40px; left: 28px;"></div>
+        </div>
+        
+        <div class="building building3">
+            <div class="window" style="top: 25px; left: 18px;"></div>
+            <div class="window" style="top: 25px; left: 38px;"></div>
+            <div class="window" style="top: 55px; left: 18px;"></div>
+            <div class="window" style="top: 55px; left: 38px;"></div>
+            <div class="window" style="top: 85px; left: 18px;"></div>
+            <div class="window" style="top: 85px; left: 38px;"></div>
+        </div>
+        
+        <div class="building building4">
+            <div class="window" style="top: 20px; left: 14px;"></div>
+            <div class="window" style="top: 20px; left: 32px;"></div>
+            <div class="window" style="top: 50px; left: 14px;"></div>
+            <div class="window" style="top: 50px; left: 32px;"></div>
+        </div>
+        
+        <div class="eiffel-tower">
+            <div class="tower-light"></div>
+            <div class="tower-base"></div>
+            <div class="tower-middle"></div>
+            <div class="tower-top"></div>
+            <div class="tower-spire"></div>
+        </div>
+    </div>
+    
+    <div class="title">Fireworks</div>
+    
+    <button class="music-toggle" id="musicToggle" onclick="toggleMusic()">
+        <span id="musicIcon">🔇</span> <span id="musicText">Music Off</span>
+    </button>
+    
+    <div class="name-display">
+        <div class="name-text">
+
+            Mikee Alvarez
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button onclick="launchFirework()">Launch 🚀</button>
+        <button onclick="toggleAuto()">Auto: <span id="autoStatus">ON</span></button>
+        <button onclick="launchMultiple()">Grand Finale 💥</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Background Music
+        const bgMusic = new Audio();
+        bgMusic.src = 'sagda.m4a';        
+        bgMusic.loop = true;
+        bgMusic.volume = 0.3;
+        let musicPlaying = false;
+
+        function toggleMusic() {
+            const musicIcon = document.getElementById('musicIcon');
+            const musicText = document.getElementById('musicText');
+            
+            if (musicPlaying) {
+                bgMusic.pause();
+                musicIcon.textContent = '🔇';
+                musicText.textContent = 'Music Off';
+                musicPlaying = false;
+            } else {
+                bgMusic.play().catch(e => console.log('Audio play failed:', e));
+                musicIcon.textContent = '🎵';
+                musicText.textContent = 'Music On';
+                musicPlaying = true;
+            }
+        }
+
+        // Create stars (reduced from 100 to 50)
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 50; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 60 + '%';
+            star.style.opacity = Math.random() * 0.7 + 0.3;
+            starsContainer.appendChild(star);
+        }
+
+        let particles = [];
+        let autoLaunch = true;
+        let lastLaunch = 0;
+
+        const colors = [
+            ['#ff0844', '#ffb199', '#ff6b6b'],
+            ['#00d9ff', '#00fff9', '#4ecdc4'],
+            ['#ffd700', '#ffed4e', '#ffa500'],
+            ['#ff1493', '#ff69b4', '#ff8fab'],
+            ['#00ff00', '#7fff00', '#32cd32'],
+            ['#9400d3', '#da70d6', '#ba55d3'],
+            ['#ff6347', '#ff8c00', '#ffa07a'],
+            ['#00ced1', '#20b2aa', '#48d1cc'],
+            ['#ff00ff', '#ff77ff', '#ee82ee'],
+            ['#ffff00', '#ffffe0', '#fffacd']
+        ];
+
+        class Particle {
+            constructor(x, y, color, isTrail = false, type = 'normal') {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.type = type;
+                this.radius = isTrail ? Math.random() * 2 + 1 : Math.random() * 3 + 2;
+                
+                if (type === 'heart') {
+                    this.radius = Math.random() * 4 + 3;
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 8 + 4;
+                    this.velocity = {
+                        x: Math.cos(angle) * speed,
+                        y: Math.sin(angle) * speed
+                    };
+                } else if (type === 'star') {
+                    this.radius = Math.random() * 4 + 2;
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 10 + 5;
+                    this.velocity = {
+                        x: Math.cos(angle) * speed,
+                        y: Math.sin(angle) * speed
+                    };
+                } else {
+                    this.velocity = isTrail ? {
+                        x: (Math.random() - 0.5) * 2,
+                        y: Math.random() * 2 + 1
+                    } : {
+                        x: (Math.random() - 0.5) * 12,
+                        y: (Math.random() - 0.5) * 12
+                    };
+                }
+                
+                this.gravity = isTrail ? 0.05 : 0.08;
+                this.friction = 0.98;
+                this.opacity = 1;
+                this.decay = Math.random() * 0.015 + 0.015;
+                this.isTrail = isTrail;
+                this.angle = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.1;
+            }
+
+            update() {
+                this.velocity.y += this.gravity;
+                this.velocity.x *= this.friction;
+                this.velocity.y *= this.friction;
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.opacity -= this.decay;
+                this.angle += this.rotationSpeed;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.opacity;
+                ctx.translate(this.x, this.y);
+                
+                if (this.type === 'heart') {
+                    ctx.beginPath();
+                    ctx.moveTo(0, this.radius * 0.3);
+                    ctx.bezierCurveTo(-this.radius, -this.radius * 0.3, -this.radius, this.radius * 0.5, 0, this.radius);
+                    ctx.bezierCurveTo(this.radius, this.radius * 0.5, this.radius, -this.radius * 0.3, 0, this.radius * 0.3);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                } else if (this.type === 'star') {
+                    ctx.beginPath();
+                    for (let i = 0; i < 5; i++) {
+                        const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+                        const x = Math.cos(angle) * this.radius;
+                        const y = Math.sin(angle) * this.radius;
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.closePath();
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                } else {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                }
+                
+                // Simplified glow effect
+                if (this.opacity > 0.5) {
+                    ctx.globalAlpha = this.opacity * 0.3;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius * 2, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+        }
+
+        class Rocket {
+            constructor(x, targetY, type = 'normal') {
+                this.x = x;
+                this.y = canvas.height;
+                this.targetY = targetY;
+                this.velocity = 8;
+                this.colorScheme = colors[Math.floor(Math.random() * colors.length)];
+                this.exploded = false;
+                this.type = type;
+            }
+
+            update() {
+                if (!this.exploded) {
+                    this.y -= this.velocity;
+                    
+                    // Create trail
+                    if (Math.random() < 0.5) {
+                        particles.push(new Particle(
+                            this.x + (Math.random() - 0.5) * 4,
+                            this.y,
+                            this.colorScheme[0],
+                            true
+                        ));
+                    }
+
+                    if (this.y <= this.targetY) {
+                        this.explode();
+                    }
+                }
+            }
+
+            explode() {
+                this.exploded = true;
+                const particleCount = Math.random() * 80 + 60; // Reduced from 120+100
+                
+                if (this.type === 'heart') {
+                    for (let i = 0; i < 50; i++) { // Reduced from 80
+                        particles.push(new Particle(
+                            this.x,
+                            this.y,
+                            this.colorScheme[Math.floor(Math.random() * this.colorScheme.length)],
+                            false,
+                            'heart'
+                        ));
+                    }
+                } else if (this.type === 'star') {
+                    for (let i = 0; i < 40; i++) { // Reduced from 60
+                        particles.push(new Particle(
+                            this.x,
+                            this.y,
+                            this.colorScheme[Math.floor(Math.random() * this.colorScheme.length)],
+                            false,
+                            'star'
+                        ));
+                    }
+                } else {
+                    for (let i = 0; i < particleCount; i++) {
+                        particles.push(new Particle(
+                            this.x,
+                            this.y,
+                            this.colorScheme[Math.floor(Math.random() * this.colorScheme.length)]
+                        ));
+                    }
+                }
+
+                // Create ring effect (reduced)
+                for (let i = 0; i < 40; i++) { // Reduced from 60
+                    const angle = (Math.PI * 2 * i) / 40;
+                    const velocity = Math.random() * 3 + 5;
+                    const p = new Particle(this.x, this.y, this.colorScheme[1]);
+                    p.velocity.x = Math.cos(angle) * velocity;
+                    p.velocity.y = Math.sin(angle) * velocity;
+                    particles.push(p);
+                }
+            }
+
+            draw() {
+                if (!this.exploded) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
+                    ctx.fillStyle = this.colorScheme[0];
+                    ctx.fill();
+                    
+                    // Simplified rocket glow
+                    ctx.globalAlpha = 0.4;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, 7, 0, Math.PI * 2);
+                    ctx.fillStyle = this.colorScheme[0];
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+        }
+
+        let rockets = [];
+
+        function startShow() {
+            const introScreen = document.getElementById('introScreen');
+            const musicToggle = document.getElementById('musicToggle');
+            
+            introScreen.classList.add('fade-out');
+            setTimeout(() => {
+                introScreen.style.display = 'none';
+                musicToggle.classList.add('show');
+                
+                // Auto-start music
+                bgMusic.play().catch(e => console.log('Audio play failed:', e));
+                document.getElementById('musicIcon').textContent = '🎵';
+                document.getElementById('musicText').textContent = 'Music On';
+                musicPlaying = true;
+                
+                // Launch initial fireworks
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        launchFirework();
+                    }, i * 300);
+                }
+            }, 1000);
+        }
+
+        function launchFirework(type = 'normal') {
+            const x = Math.random() * canvas.width;
+            const targetY = Math.random() * (canvas.height * 0.35) + canvas.height * 0.1;
+            rockets.push(new Rocket(x, targetY, type));
+        }
+
+        function launchMultiple() {
+            for (let i = 0; i < 5; i++) { // Reduced from 8 to 5
+                setTimeout(() => {
+                    const types = ['normal', 'heart', 'star'];
+                    const type = types[Math.floor(Math.random() * types.length)];
+                    launchFirework(type);
+                }, i * 250); // Increased delay from 200 to 250
+            }
+        }
+
+        function toggleAuto() {
+            autoLaunch = !autoLaunch;
+            document.getElementById('autoStatus').textContent = autoLaunch ? 'ON' : 'OFF';
+        }
+
+        function animate(timestamp) {
+            ctx.fillStyle = 'rgba(10, 10, 30, 0.2)'; // Increased trail fade
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Auto launch with variety
+            if (autoLaunch && timestamp - lastLaunch > 1200) { // Increased interval from 1000 to 1200
+                const types = ['normal', 'normal', 'normal', 'heart', 'star'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                launchFirework(type);
+                lastLaunch = timestamp;
+            }
+
+            // Update and draw rockets
+            rockets = rockets.filter(rocket => {
+                rocket.update();
+                rocket.draw();
+                return !rocket.exploded;
+            });
+
+            // Update and draw particles
+            particles = particles.filter(particle => {
+                particle.update();
+                particle.draw();
+                return particle.opacity > 0;
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        // Click to launch
+        canvas.addEventListener('click', (e) => {
+            const x = e.clientX;
+            const targetY = e.clientY;
+            const types = ['normal', 'heart', 'star'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            rockets.push(new Rocket(x, targetY, type));
+        });
+
+        // Start animation
+        animate(0);
+    </script>
+</body>
+</html>
